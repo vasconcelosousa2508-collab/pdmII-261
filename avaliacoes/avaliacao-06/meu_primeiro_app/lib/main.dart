@@ -15,12 +15,24 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Namer App',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
-        ),
-        home: MyHomePage(),
+      child: Consumer<MyAppState>(
+        builder: (context, appState, child) {
+          return MaterialApp(
+            title: 'Namer App',
+            themeMode: appState.themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.lightBlueAccent,
+                brightness: Brightness.dark,
+              ),
+            ),
+            home: MyHomePage(),
+          );
+        },
       ),
     );
   }
@@ -28,6 +40,14 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
+  ThemeMode themeMode = ThemeMode.light;
+
+  void toggleTheme() {
+    themeMode = themeMode == ThemeMode.light
+        ? ThemeMode.dark
+        : ThemeMode.light;
+    notifyListeners();
+  }
 
   void getNext() {
     current = WordPair.random();
@@ -57,6 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
     Widget page;
     switch (selectedIndex) {
       case 0:
@@ -86,6 +107,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     label: Text('Favorites'),
                   ),
                 ],
+                trailing: IconButton(
+                  tooltip: appState.themeMode == ThemeMode.dark
+                      ? 'Ativar modo claro'
+                      : 'Ativar modo escuro',
+                  onPressed: appState.toggleTheme,
+                  icon: Icon(
+                    appState.themeMode == ThemeMode.dark
+                        ? Icons.light_mode
+                        : Icons.dark_mode,
+                  ),
+                ),
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
                   setState(() {
